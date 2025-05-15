@@ -1006,6 +1006,23 @@ def process_residue_constraint_features(
         planar_ring_5_constraints = residue_constraints.planar_ring_5_constraints
         planar_ring_6_constraints = residue_constraints.planar_ring_6_constraints
 
+        #======================= Newly added lines =============================
+        if residue_constraints.noesy_restraints is not None:
+            noesy_restraints = residue_constraints.noesy_restraints
+            noesy_indices = torch.tensor(
+                [[r["residue_from"], r["residue_to"]] for r in noesy_restraints],
+                dtype=torch.long,
+            )
+            noesy_distances = torch.tensor(
+                [[r["distance"]-0.5, r["distance"]+0.5] for r in noesy_restraints],
+                dtype=torch.float,
+            )
+        else:
+            noesy_indices = torch.empty((0, 2), dtype=torch.long)
+            noesy_distances = torch.empty((0, 2), dtype=torch.float)
+        #======================= Newly added lines =============================
+
+
         rdkit_bounds_index = torch.tensor(
             rdkit_bounds_constraints["atom_idxs"].copy(), dtype=torch.long
         ).T
@@ -1057,13 +1074,7 @@ def process_residue_constraint_features(
         rdkit_bounds_angle_mask = torch.empty((0,), dtype=torch.bool)
         rdkit_upper_bounds = torch.empty((0,), dtype=torch.float)
         rdkit_lower_bounds = torch.empty((0,), dtype=torch.float)
-        chiral_atom_index = torch.empty(
-            (
-                4,
-                0,
-            ),
-            dtype=torch.long,
-        )
+        chiral_atom_index = torch.empty((4, 0), dtype=torch.long)
         chiral_reference_mask = torch.empty((0,), dtype=torch.bool)
         chiral_atom_orientations = torch.empty((0,), dtype=torch.bool)
         stereo_bond_index = torch.empty((4, 0), dtype=torch.long)
@@ -1072,6 +1083,10 @@ def process_residue_constraint_features(
         planar_bond_index = torch.empty((6, 0), dtype=torch.long)
         planar_ring_5_index = torch.empty((5, 0), dtype=torch.long)
         planar_ring_6_index = torch.empty((6, 0), dtype=torch.long)
+        #======================= Newly added lines =============================
+        noesy_indices = torch.empty((0, 2), dtype=torch.long)
+        noesy_distances = torch.empty((0, 2), dtype=torch.float)
+        #======================= Newly added lines =============================
 
     return {
         "rdkit_bounds_index": rdkit_bounds_index,
@@ -1088,6 +1103,10 @@ def process_residue_constraint_features(
         "planar_bond_index": planar_bond_index,
         "planar_ring_5_index": planar_ring_5_index,
         "planar_ring_6_index": planar_ring_6_index,
+        #======================= Newly added lines =============================
+        "noesy_indices": noesy_indices,
+        "noesy_distances": noesy_distances,
+        #======================= Newly added lines =============================
     }
 
 
