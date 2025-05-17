@@ -420,6 +420,15 @@ PlanarRing5Constraint = [
 PlanarRing6Constraint = [
     ("atom_idxs", np.dtype("6i4")),
 ]
+#==================== newly added line ======================
+NoesyConstraint = [
+    ("residue_from", "i4"),
+    ("residue_to", "i4"),
+    ("distance", "f4"),
+    ("atom_from", "U4"),
+    ("atom_to", "U4"),
+]
+#============================================================
 
 
 @dataclass(frozen=True)
@@ -432,6 +441,9 @@ class ResidueConstraints(NumpySerializable):
     planar_bond_constraints: np.ndarray
     planar_ring_5_constraints: np.ndarray
     planar_ring_6_constraints: np.ndarray
+    #============= newly added lines ===========================
+    noesy_restraints: np.ndarray 
+    #==========================================================
 
 
 ####################################################################################################

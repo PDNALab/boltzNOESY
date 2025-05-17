@@ -24,6 +24,7 @@ from boltz.data.types import (
     PlanarRing5Constraint,
     PlanarRing6Constraint,
     RDKitBoundsConstraint,
+    NoesyConstraint, #===================== newly added line =================
     Record,
     Residue,
     ResidueConstraints,
@@ -998,6 +999,7 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
     planar_bond_constraint_data = []
     planar_ring_5_constraint_data = []
     planar_ring_6_constraint_data = []
+    noesy_restraint_data = []   #========== newly added line =============
 
     # Convert parsed chains to tables
     atom_idx = 0
@@ -1149,7 +1151,21 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
                 atom_idx += 1
 
             res_idx += 1
-
+    #==================== newly addded lines =================
+    # Preserve existing noesy_restraints when re-initializing residue_constraints
+    #residue_constraints = ResidueConstraints(
+    #    rdkit_bounds_constraints=rdkit_bounds_constraints,
+    #    chiral_atom_constraints=chiral_atom_constraints,
+    #    stereo_bond_constraints=stereo_bond_constraints,
+    #    planar_bond_constraints=planar_bond_constraints,
+    #    planar_ring_5_constraints=planar_ring_5_constraints,
+    #    planar_ring_6_constraints=planar_ring_6_constraints,
+    #    noesy_restraints=residue_constraints.noesy_restraints,  # Preserve existing NOESY constraints
+    #)
+    #==========================================================
+    # Initialize rdkit_bounds_constraints early
+    #rdkit_bounds_constraints = np.empty(0, dtype=RDKitBoundsConstraint)
+    #================================================
     # Parse constraints
     connections = []
     pocket_binders = []
@@ -1197,6 +1213,48 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
                         for chain_name, residue_index in contacts
                     ]
                 )
+        #==================== Newly added lines ===================
+
+        elif "noesy" in constraint:
+            noesy = constraint["noesy"]
+            required_fields = ["residue_from", "residue_to", "distance", "atom_from", "atom_to"]
+            for field in required_fields:
+                if field not in noesy:
+                    raise ValueError(f"Missing field '{field}' in NOESY constraint")
+
+            # Extract data from the constraint
+            residue_from = noesy["residue_from"]
+            residue_to = noesy["residue_to"]
+            distance = noesy["distance"]
+            atom_from = noesy["atom_from"]
+            atom_to = noesy["atom_to"]
+
+            # Validate atom names and residues
+            try:
+                atom1_idx = atom_idx_map[("A", residue_from - 1, atom_from)]  # 1-indexed
+                atom2_idx = atom_idx_map[("A", residue_to - 1, atom_to)]  # 1-indexed
+
+                # ensure atom1_idx and atom2_idx are tuples
+                if not isinstance (atom1_idx, tuple) or not isinstance (atom2_idx, tuple):
+                    raise ValueError(f"Invalid atom indices: {atom1_idx}, {atom2_idx}")
+                
+            except KeyError:
+                raise ValueError(f"Invalid NOESY constraint: Could not map atoms {atom_from} or {atom_to} to indices")
+
+            # Add the NOESY constraint to the list of connections
+            #if residue_constraints.noesy_restraints is None:
+            #    residue_constraints.noesy_restraints = []
+            noesy_restraint_data.append((
+                #residue_from,
+                #residue_to,
+                atom1_idx[2],
+                atom2_idx[2],
+                distance,
+                atom_from,
+                atom_to,
+            ))
+
+        #===========================================================
         else:
             msg = f"Invalid constraint: {constraint}"
             raise ValueError(msg)
@@ -1226,6 +1284,10 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
     )
     planar_ring_6_constraints = np.array(
         planar_ring_6_constraint_data, dtype=PlanarRing6Constraint
+    )
+    #======================= newly added lines ==============
+    noesy_restraints = np.array(
+        noesy_restraint_data, dtype=NoesyConstraint
     )
 
     data = Structure(
@@ -1271,6 +1333,9 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
         planar_bond_constraints=planar_bond_constraints,
         planar_ring_5_constraints=planar_ring_5_constraints,
         planar_ring_6_constraints=planar_ring_6_constraints,
+        #=================== Newly added lines ===================
+        noesy_restraints = noesy_restraints,
+        #===========================================
     )
 
     return Target(

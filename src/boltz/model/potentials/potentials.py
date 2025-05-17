@@ -99,6 +99,9 @@ class Potential(ABC):
 
 class FlatBottomPotential(Potential):
     def compute_function(self, value, k, lower_bounds, upper_bounds, compute_derivative=False):
+        #============ newly added line =====================
+        print(f"value shape: {value.shape}, lower_bounds shape: {lower_bounds.shape}, upper_bounds shape: {upper_bounds.shape}")
+        #========================================================
         if lower_bounds is None:
             lower_bounds = torch.full_like(value, float('-inf'))
         if upper_bounds is None:
@@ -314,6 +317,90 @@ class PlanarBondPotential(FlatBottomPotential, AbsDihedralPotential):
 
         return improper_index, (k, lower_bounds, upper_bounds), None
 
+#========================= Newly added lines ===============================
+class NOESYDistancePotential(FlatBottomPotential):
+    def compute_args(self, feats, paramters):
+        indices = feats["noesy_indices"]
+        distances = feats["noesy_distances"]
+
+        # Debugging: Print the shape and content of distances
+        
+        print(f"original indices shape: {indices.shape}, indices: {indices}")
+        print(f"Original distances shape: {distances.shape}, distances: {distances}")
+
+        # ensure indices is a 2D tesor with the sape (2,N)
+        #if indices.ndim == 3 and indices.shape[0] ==1:
+            #indices = indices.squeeze(0) # remove the batch dimention
+
+        # ensure indices is a 2D tensor with shepe (2,N)
+        #if indices.ndim != 2 or indices.shape[0] !=2:
+            #raise ValueError(f"Expected 'noesy_indices' to have shape (2,N), but ot {indices.shape}")
+        
+        #if distances.ndim == 3 or distances.shape[0] == 1:
+            #distances = distances.squeeze(0) # remove the batch dimention
+
+        # ensure distance is a 2D tensor with shape (N, 2)
+        #if distances.ndim != 2 or distances.shape[1] != 2:
+            #raise ValueError (f"Expected 'noesy_distances' to have shape (N,2), but ot {distances.shape}")
+
+        # handle batch diemnsions
+        #if indices.ndim == 4:
+            #indices = indices.squeeze(0) # remove batch dimension if present 
+
+        #if distances.ndim == 3:
+            #distances = distances.squeeze(0) # remove batch dimensions if present
+
+        # remove the batch dimension if present
+        if indices.ndim ==3 and indices.shape[0] ==1:
+            indices = indices.squeeze(0) # remove the batch dimesions
+
+        # ensure indices is a 2D tensor with shape (2,N)
+        if indices.ndim ==2 and indices.shape[1] == 2:
+            indices = indices.T # transpose to get the shape of (2,N)
+        
+        # Handle empty case
+        if indices.numel() == 0:
+            # Return empty tensors in the correct shape
+            indices = torch.empty((2, 0), dtype=torch.long, device=indices.device)
+            distances = torch.empty((0, 2), dtype=distances.dtype, device=distances.device)
+            lower_bounds = torch.empty((0,), dtype=distances.dtype, device=distances.device)
+            upper_bounds = torch.empty((0,), dtype=distances.dtype, device=distances.device)
+            k = torch.empty((0,), dtype=distances.dtype, device=distances.device)
+            return indices, (k, lower_bounds, upper_bounds), None
+
+        if indices.ndim != 2 or indices.shape[0] != 2:
+            raise ValueError(f"Expected 'noesy_indices' to have shape (2,N) but got {indices.shape}")
+        
+        # ensure distances is a 2D tensor with shape (N,2)
+        if distances.ndim == 3 and distances.shape[0] == 1:
+            distances = distances.squeeze(0) # remove the batch dimension
+
+        if distances.ndim != 2 or distances.shape[1] != 2:
+            raise ValueError(f"Expected 'noesy_distances' to have shape (N,2), but got {distances.shape}")
+
+        lower_bounds = distances[:,0]
+        upper_bounds = distances[:,1]
+        k = torch.ones_like(lower_bounds) * self.parameters.get("weight", 10.0)
+
+        return indices, (k, lower_bounds, upper_bounds), None
+    
+    def compute_variable(self, coords, index, compute_gradient=False):
+        # compue pairwise distances
+        r_ij = coords.index_select(-2,index[0]) - coords.index_select(-2,index[1])
+        r_ij_norm = torch.linalg.norm(r_ij, dim=-1)
+
+        if not compute_gradient:
+            return r_ij_norm
+        
+        # compute gradients if required
+        grad_i = r_ij / r_ij_norm.unsqueeze(-1)
+        grad_j = -1 * grad_i
+        grad = torch.stack((grad_i, grad_j), dim=1)
+
+        return r_ij_norm, grad
+
+    
+#========================= Newly added lines ===============================
 def get_potentials():
     potentials = [
         SymmetricChainCOMPotential(
@@ -383,6 +470,16 @@ def get_potentials():
                 'resampling_weight': 1.0,
                 'buffer': 0.26180
             }
+        ),
+        #=============================== Newly added lines ===============================
+        NOESYDistancePotential(
+            parameters={
+                'guidance_interval': 1, # how often the potetial is applied
+                'guidance_weight': 10.0, # stregth of the NOESY restraint
+                'resampling_weight': 1.0, # weight of the potential during resampling
+                'tolerance': 0.5 # allowed deviation from the traget distance
+            }
         )
+        #=============================== Newly added lines ===============================
     ]
     return potentials
