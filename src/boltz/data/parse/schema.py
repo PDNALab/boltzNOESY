@@ -11,6 +11,7 @@ from rdkit.Chem.rdDistGeom import GetMoleculeBoundsMatrix
 from rdkit.Chem.rdMolDescriptors import CalcNumHeavyAtoms
 
 from boltz.data import const
+#from boltz.data import types # ================ newly added lines ==============
 from boltz.data.types import (
     Atom,
     Bond,
@@ -1231,8 +1232,8 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
 
             # Validate atom names and residues
             try:
-                atom1_idx = atom_idx_map[("A", residue_from - 1, atom_from)]  # 1-indexed
-                atom2_idx = atom_idx_map[("A", residue_to - 1, atom_to)]  # 1-indexed
+                atom1_idx = atom_idx_map[("A", residue_from -1, atom_from)]  # 1-indexed  # for A use a universal charactor (chain_name)
+                atom2_idx = atom_idx_map[("A", residue_to -1, atom_to)]  # 1-indexed
 
                 # ensure atom1_idx and atom2_idx are tuples
                 if not isinstance (atom1_idx, tuple) or not isinstance (atom2_idx, tuple):
@@ -1244,6 +1245,13 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
             # Add the NOESY constraint to the list of connections
             #if residue_constraints.noesy_restraints is None:
             #    residue_constraints.noesy_restraints = []
+            #print(f"NOESY: (residue_from) {atom_from} (idx{atom1_idx[2]}) <-> (residue_to) {atom_to} (idx{atom2_idx[2]})")
+            #print("============================")
+
+            #print("Coords for NOESY pair:", structure.atoms[atom1_idx[2]]["coords"], structure.atoms[atom2_idx[2]]["coords"])
+
+            #print("Coords for NOESY pair:", Structure.atoms[atom1_idx[2]]["coords"], Structure.atoms[atom2_idx[2]]["coords"])
+
             noesy_restraint_data.append((
                 #residue_from,
                 #residue_to,
@@ -1253,6 +1261,8 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
                 atom_from,
                 atom_to,
             ))
+
+            #print("Coords for NOESY pair:", data.atoms[atom1_idx[2]]["coords"], data.atoms[atom2_idx[2]]["coords"])
 
         #===========================================================
         else:
@@ -1289,7 +1299,7 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
     noesy_restraints = np.array(
         noesy_restraint_data, dtype=NoesyConstraint
     )
-
+    #=====================================================
     data = Structure(
         atoms=atoms,
         bonds=bonds,

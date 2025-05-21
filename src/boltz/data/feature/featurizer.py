@@ -1051,6 +1051,22 @@ def process_residue_constraint_features(
         planar_ring_6_index = torch.tensor(
             planar_ring_6_constraints["atom_idxs"].copy(), dtype=torch.long
         ).T
+
+    #======================= newly added lines ==========================
+        if hasattr(residue_constraints, "noesy_restraints") and residue_constraints.noesy_restraints is not None and len(residue_constraints.noesy_restraints) > 0:
+            # for each entry: (atom1_idx, atom2_idx, distance, atom_from, atom_to)
+            noesy_indices = torch.tensor(
+                [[r[0], r[1]] for r in residue_constraints.noesy_restraints], dtype=torch.long
+            ).T #shape (2,N)
+            noesy_distances = torch.tensor(
+                [[r[2] - 0.5, r[2] + 0.5] for r in residue_constraints.noesy_restraints], dtype=torch.long
+            ) # shepe (N,2)
+        else:
+            noesy_indices = torch.empty((2,0), dtype=torch.long)
+            noesy_distances = torch.empty((0.2), dtype=torch.float)
+
+    #===============================================================================
+    
     else:
         rdkit_bounds_index = torch.empty((2, 0), dtype=torch.long)
         rdkit_bounds_bond_mask = torch.empty((0,), dtype=torch.bool)
@@ -1072,6 +1088,10 @@ def process_residue_constraint_features(
         planar_bond_index = torch.empty((6, 0), dtype=torch.long)
         planar_ring_5_index = torch.empty((5, 0), dtype=torch.long)
         planar_ring_6_index = torch.empty((6, 0), dtype=torch.long)
+        #==================== newly added lines =========================
+        noesy_indices = torch.empty((2,0), dtype=torch.long)
+        noesy_distances = torch.empty((0.2), dtype=torch.float)
+        #==============================================================
 
     return {
         "rdkit_bounds_index": rdkit_bounds_index,
@@ -1088,6 +1108,10 @@ def process_residue_constraint_features(
         "planar_bond_index": planar_bond_index,
         "planar_ring_5_index": planar_ring_5_index,
         "planar_ring_6_index": planar_ring_6_index,
+        #================ newly added lines ===================
+        "noesy_indices": noesy_indices,
+        "noesy_distances": noesy_distances,
+        #=======================================================
     }
 
 

@@ -325,8 +325,8 @@ class NOESYDistancePotential(FlatBottomPotential):
 
         # Debugging: Print the shape and content of distances
         
-        print(f"original indices shape: {indices.shape}, indices: {indices}")
-        print(f"Original distances shape: {distances.shape}, distances: {distances}")
+        #print(f"original indices shape: {indices.shape}, indices: {indices}")
+        #print(f"Original distances shape: {distances.shape}, distances: {distances}")
 
         # ensure indices is a 2D tesor with the sape (2,N)
         #if indices.ndim == 3 and indices.shape[0] ==1:
@@ -378,9 +378,13 @@ class NOESYDistancePotential(FlatBottomPotential):
         if distances.ndim != 2 or distances.shape[1] != 2:
             raise ValueError(f"Expected 'noesy_distances' to have shape (N,2), but got {distances.shape}")
 
-        lower_bounds = distances[:,0]
-        upper_bounds = distances[:,1]
-        k = torch.ones_like(lower_bounds) * self.parameters.get("weight", 10.0)
+        # Convert H-H bounds to CA-CA bounds using ±2*1.09 Å
+        bond_offset = 2 * 1.09
+        # lower_bounds = distances[:,0]
+        lower_bounds = distances[:,0] - bond_offset
+        # upper_bounds = distances[:,1]
+        upper_bounds = distances[:,1] + bond_offset
+        k = torch.ones_like(lower_bounds) * self.parameters.get("weight", 0.05) ###### changed; initial #get("weight", 10.0)
 
         return indices, (k, lower_bounds, upper_bounds), None
     
@@ -440,7 +444,7 @@ def get_potentials():
         PoseBustersPotential(
             parameters={
                 'guidance_interval': 1,
-                'guidance_weight': 0.05,
+                'guidance_weight': 0.05,  # changed ############## 'guidance_weight': 0.05,
                 'resampling_weight': 0.1,
                 'bond_buffer': 0.20,
                 'angle_buffer': 0.20,
@@ -475,9 +479,10 @@ def get_potentials():
         NOESYDistancePotential(
             parameters={
                 'guidance_interval': 1, # how often the potetial is applied
-                'guidance_weight': 10.0, # stregth of the NOESY restraint
-                'resampling_weight': 1.0, # weight of the potential during resampling
+                'guidance_weight': 0.2, # stregth of the NOESY restraint #'guidance_weight': 10.0 # 'guidance_weight': 1.0
+                'resampling_weight': 1.0, # weight of the potential during resampling #'resampling_weight': 1.0
                 'tolerance': 0.5 # allowed deviation from the traget distance
+                #'buffer': 0.5
             }
         )
         #=============================== Newly added lines ===============================
