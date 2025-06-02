@@ -1,0 +1,97 @@
+version: 1
+sequences:
+- protein:
+    id: [A]
+    sequence: MAVQGPWVGSSYVAETGQNWASLAANELRVTERPFWISSFIGRSKEEIWEWTGENHSFNKDWLIGELRNRGGTPVVINIRAHQVSYTPGAPLFEFPGDLPNAYITLNIYADIYGRGGTGGVAYLGGNPGGDCIHNWIGNRLRINNQGWICGGGGGGGGFRVGHTEAGGGGGRPLGAGGVSSLNLNGDNATLGAPGRGYQLGNDYAGNGGDVGNPGSASSAEMGGGAAGRAVVGTSPQWINVGNIAGSWL
+    msa: empty
+constraints:
+- noesy:
+    residue_from: 174
+    residue_to: 133
+    distance: 2.3
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 63
+    residue_to: 121
+    distance: 2.3
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 77
+    residue_to: 79
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 106
+    residue_to: 104
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 64
+    residue_to: 67
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 37
+    residue_to: 41
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 137
+    residue_to: 141
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 84
+    residue_to: 76
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 23
+    residue_to: 13
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 92
+    residue_to: 108
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 161
+    residue_to: 124
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 112
+    residue_to: 149
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 249
+    residue_to: 211
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 30
+    residue_to: 99
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
+- noesy:
+    residue_from: 75
+    residue_to: 3
+    distance: 5.0
+    atom_from: CA
+    atom_to: CA
