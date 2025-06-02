@@ -432,6 +432,9 @@ class ResidueConstraints(NumpySerializable):
     planar_bond_constraints: np.ndarray
     planar_ring_5_constraints: np.ndarray
     planar_ring_6_constraints: np.ndarray
+    #============= newly added lines ===========================
+    noesy_restraints: Optional[list[dict]] = None  
+    #==========================================================
 
 
 ####################################################################################################

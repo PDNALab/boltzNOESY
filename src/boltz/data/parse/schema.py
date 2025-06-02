@@ -1197,6 +1197,41 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
                         for chain_name, residue_index in contacts
                     ]
                 )
+        #==================== Newly added lines ===================
+
+        elif "noesy" in constraint:
+            noesy = constraint["noesy"]
+            required_fields = ["residue_from", "residue_to", "distance", "atom_from", "atom_to"]
+            for field in required_fields:
+                if field not in noesy:
+                    raise ValueError(f"Missing field '{field}' in NOESY constraint")
+
+            # Extract data from the constraint
+            residue_from = noesy["residue_from"]
+            residue_to = noesy["residue_to"]
+            distance = noesy["distance"]
+            atom_from = noesy["atom_from"]
+            atom_to = noesy["atom_to"]
+
+            # Validate atom names and residues
+            try:
+                atom1_idx = atom_idx_map[("A", residue_from - 1, atom_from)]  # 1-indexed
+                atom2_idx = atom_idx_map[("A", residue_to - 1, atom_to)]  # 1-indexed
+            except KeyError:
+                raise ValueError(f"Invalid NOESY constraint: Could not map atoms {atom_from} or {atom_to} to indices")
+
+            # Add the NOESY constraint to the list of connections
+            if residue_constraints.noesy_restraints is None:
+                residue_constraints.noesy_restraints = []
+            residue_constraints.noesy_restraints.append({
+                "residue_from": residue_from,
+                "residue_to": residue_to,
+                "distance": distance,
+                "atom_from": atom_from,
+                "atom_to": atom_to, 
+            })
+
+        #===========================================================
         else:
             msg = f"Invalid constraint: {constraint}"
             raise ValueError(msg)
@@ -1271,6 +1306,9 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
         planar_bond_constraints=planar_bond_constraints,
         planar_ring_5_constraints=planar_ring_5_constraints,
         planar_ring_6_constraints=planar_ring_6_constraints,
+        #=================== Newly added lines ===================
+        #noesy_restraints = []
+        #===========================================
     )
 
     return Target(
