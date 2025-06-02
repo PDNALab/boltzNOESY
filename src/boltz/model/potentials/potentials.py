@@ -314,6 +314,17 @@ class PlanarBondPotential(FlatBottomPotential, AbsDihedralPotential):
 
         return improper_index, (k, lower_bounds, upper_bounds), None
 
+#========================= Newly added lines ===============================
+class NOESYDistancePotential(FlatBottomPotential):
+    def compute_args(self, feats, paramters):
+        indices = feats["noesy_indices"]
+        distances = feats["noesy_distances"]
+        lower_bounds = distances[:,0]
+        upper_bounds = distances[:,1]
+        k = torch.ones_like(lower_bounds) * parameters.get("weight", 10.0)
+        return indices, (k, lower_bounds, upper_bounds), None
+    
+#========================= Newly added lines ===============================
 def get_potentials():
     potentials = [
         SymmetricChainCOMPotential(
@@ -383,6 +394,16 @@ def get_potentials():
                 'resampling_weight': 1.0,
                 'buffer': 0.26180
             }
+        ),
+        #=============================== Newly added lines ===============================
+        NOESYDistancePotential(
+            parameters={
+                'guidance_interval': 1, # how often the potetial is applied
+                'guidance_weight': 10.0, # stregth of the NOESY restraint
+                'resampling_weight': 1.0, # weight of the potential during resampling
+                'tolerance': 0.5 # allowed deviation from the traget distance
+            }
         )
+        #=============================== Newly added lines ===============================
     ]
     return potentials
