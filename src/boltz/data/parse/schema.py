@@ -1308,7 +1308,7 @@ def parse_boltz_schema(  # noqa: C901, PLR0915, PLR0912
         planar_ring_6_constraints=planar_ring_6_constraints,
         #=================== Newly added lines ===================
         #noesy_restraints = []
-        #===========================================
+        #=========================================================
     )
 
     return Target(
