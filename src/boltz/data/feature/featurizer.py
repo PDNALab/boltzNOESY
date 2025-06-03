@@ -1103,7 +1103,7 @@ def process_residue_constraint_features(
         "planar_bond_index": planar_bond_index,
         "planar_ring_5_index": planar_ring_5_index,
         "planar_ring_6_index": planar_ring_6_index,
-        #======================= Newly added lines =============================
+        #======================= Newly added lines =================================
         "noesy_indices": noesy_indices,
         "noesy_distances": noesy_distances,
         #======================= Newly added lines =============================

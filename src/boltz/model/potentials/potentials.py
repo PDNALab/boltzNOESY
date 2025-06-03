@@ -404,6 +404,6 @@ def get_potentials():
                 'tolerance': 0.5 # allowed deviation from the traget distance
             }
         )
-        #=============================== Newly added lines ===============================
+        #=============================== Newly added lines =================================
     ]
     return potentials
